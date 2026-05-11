@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>季少一 · 毕业快乐</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(145deg, #051e29 0%, #0b3340 100%);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    overflow: hidden;
+  }
+  #scene {
+    position: relative;
+    width: 420px;
+    height: 620px;
+    border-radius: 16px;
+    background: #0f384b;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+    overflow: hidden;
+  }
+  #guitar-guy {
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    object-fit: cover;
+    z-index: 10;
+    transition: opacity 1.5s ease-out;
+  }
+  .strumming { animation: playGuitar 0.5s ease-in-out infinite alternate; }
+  @keyframes playGuitar {
+    0% { transform: translate(-3px, -2px) rotate(-3deg) scale(1.02); }
+    100% { transform: translate(3px, 2px) rotate(3deg) scale(1.02); }
+  }
+  #blackout {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    background: #000; z-index: 20; opacity: 0;
+    transition: opacity 1.2s ease-in; pointer-events: none;
+  }
+  #airdrop {
+    position: absolute; top: 50%; left: 50%;
+    transform: translate(-50%, -50%) scale(0.8);
+    width: 85%; max-width: 340px;
+    background: rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-radius: 24px; border: 1px solid rgba(255,255,255,0.15);
+    z-index: 30; display: none; padding: 20px 0 0 0;
+    flex-direction: column; align-items: center;
+    opacity: 0; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  }
+  #airdrop.active { display: flex; opacity: 1; transform: translate(-50%, -50%) scale(1); }
+  .airdrop-top {
+    width: 100%; display: flex; align-items: center; justify-content: center;
+    font-size: 14px; font-weight: 600; color: rgba(255,255,255,0.7);
+    padding-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.05);
+  }
+  .airdrop-avatar {
+    width: 80px; height: 80px; border-radius: 50%; object-fit: cover;
+    margin: 18px 0 10px 0; border: 2px solid rgba(255,255,255,0.2);
+  }
+  .airdrop-nick { font-size: 20px; font-weight: 700; color: #fff; }
+  .airdrop-msg { font-size: 15px; color: rgba(255,255,255,0.6); padding: 0 20px; text-align: center; margin: 10px 0 20px 0; }
+  .airdrop-btns { display: flex; width: 100%; border-top: 1px solid rgba(255,255,255,0.1); }
+  .airdrop-btn { flex: 1; padding: 16px 0; font-size: 16px; font-weight: 600; border: none; background: transparent; color: #fff; cursor: pointer; }
+  .airdrop-btn.accept { color: #8e8e93; }
+  .airdrop-btn.confirm { color: #007aff; font-weight: 700; }
+  .airdrop-btn.confirm:hover { background: rgba(0, 122, 255, 0.1); }
+  #fireworks-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 40; pointer-events: none; display: none; }
+</style>
+</head>
+<body>
+<div id="scene">
+  <img id="guitar-guy" src="guitar.jpg" alt="吉他手" class="strumming">
+  <div id="blackout"></div>
+  <div id="airdrop">
+    <div class="airdrop-top"><span>⬆</span><span style="margin-left: 8px;">隔空投送</span></div>
+    <img class="airdrop-avatar" src="avatar.jpg" alt="头像">
+    <div class="airdrop-nick">@季少一</div>
+    <div class="airdrop-msg">想要共享 1 个毕业祝福</div>
+    <div class="airdrop-btns">
+      <button class="airdrop-btn accept">接受</button>
+      <button id="confirmBtn" class="airdrop-btn confirm">欣然接受</button>
+    </div>
+  </div>
+  <canvas id="fireworks-canvas"></canvas>
+</div>
+<script>
+  (function(){
+    // --- 吉他 -> 黑屏 -> 出现 AirDrop ---
+    setTimeout(() => {
+      document.getElementById('guitar-guy').style.opacity = '0';
+      document.getElementById('blackout').style.opacity = '1';
+      setTimeout(() => {
+        document.getElementById('blackout').style.opacity = '0';
+        document.getElementById('airdrop').classList.add('active');
+      }, 1200);
+    }, 4000);
+
+    // --- 烟花系统 ---
+    const c = document.getElementById('fireworks-canvas');
+    const ctx = c.getContext('2d');
+
+    function startFireworks() {
+      c.style.display = 'block';
+      c.width = c.offsetWidth;
+      c.height = c.offsetHeight;
+      let particles = [];
+      const colors = ['#FFD700', '#FFA500', '#FF4500', '#FF1493', '#00FFFF', '#ADFF2F', '#ff6b35'];
+      
+      for(let i=0; i<150; i++) {
+        const angle = Math.random() * 2 * Math.PI;
+        const speed = Math.random() * 6 + 3;
+        particles.push({
+          x: c.width/2, y: c.height/2,
+          vx: Math.cos(angle) * speed,
+          vy: Math.sin(angle) * speed,
+          size: Math.random() * 4 + 2,
+          color: colors[Math.floor(Math.random() * colors.length)],
+          life: 1, decay: 0.015 + Math.random() * 0.02,
+          gravity: 0.06
+        });
+      }
+
+      function animate() {
+        ctx.clearRect(0, 0, c.width, c.height);
+        for(let i=particles.length-1; i>=0; i--) {
+          const p = particles[i];
+          p.x += p.vx; p.y += p.vy;
+          p.vy += p.gravity;
+          p.life -= p.decay;
+          if(p.life <= 0) { particles.splice(i, 1); continue; }
+          ctx.globalAlpha = p.life;
+          ctx.fillStyle = p.color;
+          ctx.shadowBlur = 20; ctx.shadowColor = p.color;
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.size * p.life, 0, Math.PI*2);
+          ctx.fill();
+        }
+        if(particles.length > 0) requestAnimationFrame(animate);
+        else { ctx.clearRect(0,0,c.width,c.height); c.style.display = 'none'; }
+      }
+      animate();
+    }
+
+    document.getElementById('confirmBtn').addEventListener('click', function() {
+      document.getElementById('airdrop').classList.remove('active');
+      setTimeout(startFireworks, 300);
+    });
+
+  })();
+</script>
+</body>
+</html>
